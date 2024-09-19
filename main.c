@@ -16,6 +16,10 @@ int32_t on_event(netx *self, uint32_t event, void *data, uint32_t len)
         printf("len: %d\n", len);
         printf("data: %s\n", (char *)data);
     }
+    else if (event == UART_ON_CLOSE)
+    {
+        printf("UART_ON_CLOSE\n");
+    }
 
     return 0;
 }
@@ -38,6 +42,12 @@ int main(int argc, char const *argv[])
         return -1;
     }
 
+    if (NetxStart(&netx_uart) < 0)
+    {
+        printf("NetxStart failed\n");
+        return -1;
+    }
+
     if (NetxRecvStart(&netx_uart) < 0)
     {
         printf("NetxRecvStart failed\n");
@@ -51,6 +61,8 @@ int main(int argc, char const *argv[])
     }
 
     sleep(20);
+
+    NetxStop(&netx_uart);
 
     if (NetxUartDestory(&netx_uart) < 0)
     {

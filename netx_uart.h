@@ -5,6 +5,7 @@
 
 typedef enum {
     UART_ON_DATA = 0,
+    UART_ON_CLOSE,
     UART_ON_EVENT_MAX,
 } UART_EVENT;
 

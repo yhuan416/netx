@@ -196,6 +196,14 @@ int32_t _uart_netx_start(netx *self)
 int32_t _uart_netx_stop(netx *self)
 {
     int32_t ret = 0;
+    uart_dev_t *dev = (uart_dev_t *)self->priv;
+    if (dev)
+    {
+        NetxOnEvent(dev->priv, UART_ON_CLOSE, NULL, 0);
+
+        close(dev->fd);
+        dev->fd = -1;
+    }
     return ret;
 }
 
