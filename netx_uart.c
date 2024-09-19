@@ -72,7 +72,7 @@ void *uart_recv_thread(void *arg)
         int len = read(fd, buf, sizeof(buf));
         if (len > 0)
         {
-            NetxOnEvent(dev->priv, UART_ON_DATA, buf, len);
+            NetxOnData(dev->priv, buf, len);
         }
     }
 }
@@ -83,6 +83,15 @@ static void _uart_recv_thread_start(uart_dev_t *dev)
     {
         pthread_create(&dev->uart_recv_thread, NULL, uart_recv_thread, (void *)dev);
         dev->uart_recv_thread_started = 1;
+    }
+}
+
+static void _uart_recv_thread_stop(uart_dev_t *dev)
+{
+    if (dev->uart_recv_thread_started)
+    {
+        pthread_cancel(dev->uart_recv_thread);
+        dev->uart_recv_thread_started = 0;
     }
 }
 
@@ -146,19 +155,6 @@ static int32_t _uart_netx_send(netx *self, const uint8_t *data, uint32_t len)
     return ret;
 }
 
-static int32_t _uart_netx_recv_start(netx *self)
-{
-    int32_t ret = 0;
-
-    uart_dev_t *dev = (uart_dev_t *)self->priv;
-    if (dev)
-    {
-        _uart_recv_thread_start(dev);
-    }
-
-    return ret;
-}
-
 static int32_t _uart_netx_get_mtu(netx *self)
 {
     return 1500;
@@ -170,7 +166,7 @@ static int32_t _uart_netx_ctrl(netx *self, uint32_t cmd, void *data, uint32_t le
     return ret;
 }
 
-int32_t _uart_netx_start(netx *self)
+int32_t _uart_netx_start(netx *self, netx_on_data on_data)
 {
     int fd;
     int32_t ret = 0;
@@ -189,6 +185,11 @@ int32_t _uart_netx_start(netx *self)
         return ret;
     }
 
+    if (on_data != NULL)
+    {
+        _uart_recv_thread_start(dev);
+    }
+
     dev->fd = fd;
     return ret;
 }
@@ -199,7 +200,7 @@ int32_t _uart_netx_stop(netx *self)
     uart_dev_t *dev = (uart_dev_t *)self->priv;
     if (dev)
     {
-        NetxOnEvent(dev->priv, UART_ON_CLOSE, NULL, 0);
+        _uart_recv_thread_stop(dev);
 
         close(dev->fd);
         dev->fd = -1;
@@ -212,8 +213,6 @@ static netx_interface_t g_uart_netx_interface = {
     .stop = _uart_netx_stop,
 
     .send = _uart_netx_send,
-
-    .recv_start = _uart_netx_recv_start,
 
     .get_mtu = _uart_netx_get_mtu,
     .ctrl = _uart_netx_ctrl,

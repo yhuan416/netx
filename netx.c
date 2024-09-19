@@ -6,12 +6,36 @@ static int32_t _netx_on_event_default(netx *self, uint32_t event, void *data, ui
     return 0;
 }
 
-int32_t NetxStart(netx *self)
+static int32_t _netx_on_data_default(netx *self, void *data, uint32_t len)
+{
+    printf("_netx_on_data_default data: %p, len: %d\n", data, len);
+    return 0;
+}
+
+int32_t NetxStart(netx *self, netx_on_data on_data)
 {
     int32_t ret = -1;
+
+    if (!self)
+    {
+        return ret;
+    }
+
+    if (self->state == NETX_START)
+    {
+        return 0;
+    }
+
+    // save on_data callback
+    self->on_data = on_data;
+
     if (self->interface->start)
     {
-        ret = self->interface->start(self);
+        ret = self->interface->start(self, on_data);
+        if (ret == 0)
+        {
+            self->state = NETX_START;
+        }
     }
     return ret;
 }
@@ -22,6 +46,10 @@ int32_t NetxStop(netx *self)
     if (self->interface->stop)
     {
         ret = self->interface->stop(self);
+        if (ret == 0)
+        {
+            self->state = NETX_INIT;
+        }
     }
     return ret;
 }
@@ -32,16 +60,6 @@ int32_t NetxSend(netx *self, const uint8_t *data, uint32_t len)
     if (self->interface->send)
     {
         ret = self->interface->send(self, data, len);
-    }
-    return ret;
-}
-
-int32_t NetxRecvStart(netx *self)
-{
-    int32_t ret = -1;
-    if (self->interface->recv_start)
-    {
-        ret = self->interface->recv_start(self);
     }
     return ret;
 }
@@ -76,14 +94,23 @@ int16_t NetxGetMtu(netx *self)
 int32_t NetxOnEvent(netx *self, uint32_t event, void *data, uint32_t len)
 {
     int32_t ret = -1;
-
     netx_on_event on_event = _netx_on_event_default;
-
     if (self->on_event)
     {
         on_event = self->on_event;
     }
-
     ret = on_event(self, event, data, len);
+    return ret;
+}
+
+int32_t NetxOnData(netx *self, void *data, uint32_t len)
+{
+    int32_t ret = -1;
+    netx_on_data on_data = _netx_on_data_default;
+    if (self->on_data)
+    {
+        on_data = self->on_data;
+    }
+    ret = on_data(self, data, len);
     return ret;
 }

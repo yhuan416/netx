@@ -24,6 +24,14 @@ int32_t on_event(netx *self, uint32_t event, void *data, uint32_t len)
     return 0;
 }
 
+int32_t on_data(netx *self, void *data, uint32_t len)
+{
+    printf("on_data\n");
+    printf("len: %d\n", len);
+    printf("data: %s\n", (char *)data);
+    return 0;
+}
+
 int main(int argc, char const *argv[])
 {
     int i;
@@ -37,21 +45,9 @@ int main(int argc, char const *argv[])
         return -1;
     }
 
-    if (NetxRegOnEvent(&netx_uart, on_event) < 0)
-    {
-        printf("NetxRegOnEvent failed\n");
-        return -1;
-    }
-
-    if (NetxStart(&netx_uart) < 0)
+    if (NetxStart(&netx_uart, on_data) < 0)
     {
         printf("NetxStart failed\n");
-        return -1;
-    }
-
-    if (NetxRecvStart(&netx_uart) < 0)
-    {
-        printf("NetxRecvStart failed\n");
         return -1;
     }
 
