@@ -18,7 +18,7 @@ int32_t on_event(netx *self, uint32_t event, void *data, uint32_t len)
     }
     else if (event == UART_ON_CLOSE)
     {
-        printf("UART_ON_CLOSE\n");
+        printf("uart closed.\n");
     }
 
     return 0;
@@ -26,10 +26,11 @@ int32_t on_event(netx *self, uint32_t event, void *data, uint32_t len)
 
 int main(int argc, char const *argv[])
 {
+    int i;
     int32_t ret = -1;
     netx netx_uart = {0};
 
-    ret = NetxUartCreate(&netx_uart, "/dev/pts/18:B115200:D8:N:S1");
+    ret = NetxUartCreate(&netx_uart, argv[1]);
     if (ret < 0)
     {
         printf("NetxUartCreate failed\n");
@@ -54,13 +55,15 @@ int main(int argc, char const *argv[])
         return -1;
     }
 
-    if (NetxSend(&netx_uart, (const uint8_t *)"hello", 5) < 0)
+    for (i = 0; i < 10; i++)
     {
-        printf("NetxSend failed\n");
-        return -1;
+        sleep(1);
+        if (NetxSend(&netx_uart, (const uint8_t *)"hello", strlen("hello")) < 0)
+        {
+            printf("NetxSend failed\n");
+            return -1;
+        }
     }
-
-    sleep(20);
 
     NetxStop(&netx_uart);
 
