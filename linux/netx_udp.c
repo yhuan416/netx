@@ -11,6 +11,8 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 
+#include "common.h"
+
 #define NETX_UDP_MTU (1500)
 
 typedef struct
@@ -27,7 +29,6 @@ typedef struct
     void *priv;
 } udp_t;
 
-static int parse_address(const char *address_str, struct sockaddr_in *addr);
 static void udp_recv_thread_start(udp_t *dev);
 static void udp_recv_thread_stop(udp_t *dev);
 
@@ -177,65 +178,23 @@ int32_t NetxUdpDestory(netx *self)
     return ret;
 }
 
-static int parse_address(const char *address_str, struct sockaddr_in *addr)
-{
-    int port;
-    char ip[INET_ADDRSTRLEN];
-    char *port_str;
-
-    // 分离IP地址和端口号
-    port_str = strchr(address_str, ':');
-    if (port_str == NULL)
-    {
-        fprintf(stderr, "Invalid address format.\n");
-        return -1;
-    }
-
-    // 复制IP地址部分
-    size_t ip_len = port_str - address_str;
-    if (ip_len >= INET_ADDRSTRLEN)
-    {
-        fprintf(stderr, "IP address too long.\n");
-        return -1;
-    }
-    strncpy(ip, address_str, ip_len);
-    ip[ip_len] = '\0'; // 确保字符串以空字符结尾
-
-    // 解析端口号
-    port_str++; // 跳过冒号
-    port = atoi(port_str);
-    if (port <= 0 || port > 65535)
-    {
-        fprintf(stderr, "Invalid port number.\n");
-        return -1;
-    }
-
-    printf("ip: %s, port: %d\n", ip, port);
-
-    // 初始化sockaddr_in结构体
-    memset(addr, 0, sizeof(struct sockaddr_in));
-    addr->sin_family = AF_INET;
-    addr->sin_addr.s_addr = inet_addr(ip);
-    addr->sin_port = htons(port);
-
-    return 0;
-}
-
 static void *udp_recv_thread(void *arg)
 {
     udp_t *dev = (udp_t *)arg;
     int sockfd = dev->sockfd;
     uint8_t buf[NETX_UDP_MTU] = {0};
+    struct sockaddr_in addr = {0};
+    socklen_t addrlen = 0;
 
     printf("udp_recv_thread started\n");
 
     while (1)
     {
         memset(buf, 0, sizeof(buf));
-        int len = recvfrom(sockfd, buf, sizeof(buf), 0, NULL, 0);
+        int len = recvfrom(sockfd, buf, sizeof(buf), 0, (struct sockaddr *)&addr, &addrlen);
         if (len > 0)
         {
-            NetxOnData(dev->priv, buf, len);
+            NetxOnData(dev->priv, buf, len, &addr, addrlen);
         }
     }
 }

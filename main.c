@@ -25,7 +25,7 @@ int32_t on_event(netx *self, uint32_t event, void *data, uint32_t len)
     return 0;
 }
 
-int32_t on_data(netx *self, void *data, uint32_t len)
+int32_t on_data(netx *self, void *data, uint32_t len, void *extend, uint32_t ext_len)
 {
     printf("on_data\n");
     printf("len: %d\n", len);

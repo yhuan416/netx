@@ -6,7 +6,7 @@ static int32_t _netx_on_event_default(netx *self, uint32_t event, void *data, ui
     return 0;
 }
 
-static int32_t _netx_on_data_default(netx *self, void *data, uint32_t len)
+static int32_t _netx_on_data_default(netx *self, void *data, uint32_t len, void *extend, uint32_t ext_len)
 {
     printf("_netx_on_data_default data: %p, len: %d\n", data, len);
     return 0;
@@ -113,7 +113,7 @@ int32_t NetxOnEvent(netx *self, uint32_t event, void *data, uint32_t len)
     return ret;
 }
 
-int32_t NetxOnData(netx *self, void *data, uint32_t len)
+int32_t NetxOnData(netx *self, void *data, uint32_t len, void *extend, uint32_t ext_len)
 {
     int32_t ret = -1;
     netx_on_data on_data = _netx_on_data_default;
@@ -121,6 +121,6 @@ int32_t NetxOnData(netx *self, void *data, uint32_t len)
     {
         on_data = self->on_data;
     }
-    ret = on_data(self, data, len);
+    ret = on_data(self, data, len, extend, ext_len);
     return ret;
 }

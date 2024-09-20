@@ -10,7 +10,7 @@
 typedef struct _netx netx;
 
 typedef int32_t (*netx_on_event)(netx *self, uint32_t event, void *data, uint32_t len);
-typedef int32_t (*netx_on_data)(netx *self, void *data, uint32_t len);
+typedef int32_t (*netx_on_data)(netx *self, void *data, uint32_t len, void *extend, uint32_t ext_len);
 
 typedef int32_t (*netx_start)(netx *self, netx_on_data on_data);
 
@@ -66,6 +66,6 @@ int16_t NetxCtrl(netx *self, uint32_t cmd, void *data, uint32_t len);
 // for lower layer to call
 int32_t NetxOnEvent(netx *self, uint32_t event, void *data, uint32_t len);
 
-int32_t NetxOnData(netx *self, void *data, uint32_t len);
+int32_t NetxOnData(netx *self, void *data, uint32_t len, void *extend, uint32_t ext_len);
 
 #endif

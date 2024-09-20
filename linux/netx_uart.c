@@ -75,7 +75,7 @@ void *uart_recv_thread(void *arg)
         int len = read(fd, buf, sizeof(buf));
         if (len > 0)
         {
-            NetxOnData(dev->priv, buf, len);
+            NetxOnData(dev->priv, buf, len, NULL, 0);
         }
     }
 }
