@@ -7,6 +7,7 @@
 #include "netx.h"
 #include "netx_uart.h"
 #include "netx_udp.h"
+#include "netx_tcp.h"
 
 int32_t on_event(netx *self, uint32_t event, void *data, uint32_t len)
 {
@@ -46,6 +47,13 @@ int main(int argc, char const *argv[])
         printf("NetxUartCreate failed\n");
         return -1;
     }
+#elif 1
+    ret = NetxTcpCreate(&_netx, argv[1]);
+    if (ret < 0)
+    {
+        printf("NetxTcpCreate failed\n");
+        return -1;
+    }
 #else
     ret = NetxUdpCreate(&_netx, argv[1]);
     if (ret < 0)
@@ -63,7 +71,7 @@ int main(int argc, char const *argv[])
 
     if (argc > 2)
     {
-        if (NetxCtrl(&_netx, UDP_CTRL_CMD_BIND, (void *)argv[2], strlen(argv[2])) < 0)
+        if (NetxCtrl(&_netx, TCP_CTRL_CMD_BIND, (void *)argv[2], strlen(argv[2])) < 0)
         {
             printf("NetxCtrl failed\n");
             return -1;
@@ -86,6 +94,12 @@ int main(int argc, char const *argv[])
     if (NetxUartDestory(&_netx) < 0)
     {
         printf("NetxUartDestory failed\n");
+        return -1;
+    }
+#elif 1
+    if (NetxTcpDestory(&_netx) < 0)
+    {
+        printf("NetxTcpDestory failed\n");
         return -1;
     }
 #else
