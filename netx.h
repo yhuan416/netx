@@ -61,6 +61,8 @@ int32_t NetxRegOnEvent(netx *self, netx_on_event on_event);
 
 int16_t NetxGetMtu(netx *self);
 
+int16_t NetxCtrl(netx *self, uint32_t cmd, void *data, uint32_t len);
+
 // for lower layer to call
 int32_t NetxOnEvent(netx *self, uint32_t event, void *data, uint32_t len);
 

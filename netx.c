@@ -81,6 +81,16 @@ int32_t NetxRegOnEvent(netx *self, netx_on_event on_event)
     return ret;
 }
 
+int16_t NetxCtrl(netx *self, uint32_t cmd, void *data, uint32_t len)
+{
+    int16_t ret = -1;
+    if (self->interface->ctrl)
+    {
+        ret = self->interface->ctrl(self, cmd, data, len);
+    }
+    return ret;
+}
+
 int16_t NetxGetMtu(netx *self)
 {
     int16_t ret = -1;
