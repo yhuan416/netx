@@ -1,5 +1,7 @@
 #include "netx_uart.h"
 
+#ifdef __linux__ // only support linux
+
 #define _GNU_SOURCE // 在源文件开头定义_GNU_SOURCE 宏
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,6 +22,7 @@
 #endif
 
 #define MAX_UART_DEVICE_NUM (8)
+#define NETX_UART_MTU (1500)
 
 typedef struct uart_cfg
 {
@@ -32,8 +35,8 @@ typedef struct uart_cfg
 
 typedef struct
 {
-    uart_cfg_t cfg;
     int fd;
+    uart_cfg_t cfg;
 
     pthread_t uart_recv_thread;
     int uart_recv_thread_started;
@@ -62,7 +65,7 @@ void *uart_recv_thread(void *arg)
 {
     uart_dev_t *dev = (uart_dev_t *)arg;
     int fd = dev->fd;
-    uint8_t buf[1500] = {0};
+    uint8_t buf[NETX_UART_MTU] = {0};
 
     printf("uart_recv_thread started\n");
 
@@ -126,15 +129,13 @@ int32_t NetxUartCreate(netx *self, const char *desc)
 int32_t NetxUartDestory(netx *self)
 {
     int32_t ret = -1;
-    uart_dev_t *dev = NULL;
 
     if (!self)
         return -1;
 
-    dev = (uart_dev_t *)self->priv;
-    if (dev)
+    if (self->state == NETX_START)
     {
-        close(dev->fd);
+        self->interface->stop(self);
     }
 
     self->interface = NULL;
@@ -157,7 +158,7 @@ static int32_t _uart_netx_send(netx *self, const uint8_t *data, uint32_t len)
 
 static int32_t _uart_netx_get_mtu(netx *self)
 {
-    return 1500;
+    return NETX_UART_MTU;
 }
 
 static int32_t _uart_netx_ctrl(netx *self, uint32_t cmd, void *data, uint32_t len)
@@ -185,12 +186,13 @@ int32_t _uart_netx_start(netx *self, netx_on_data on_data)
         return ret;
     }
 
+    dev->fd = fd;
+
     if (on_data != NULL)
     {
         _uart_recv_thread_start(dev);
     }
 
-    dev->fd = fd;
     return ret;
 }
 
@@ -439,3 +441,5 @@ static int uart_cfg(int fd, const uart_cfg_t *cfg)
     /* 配置 OK 退出 */
     return 0;
 }
+
+#endif // __linux__

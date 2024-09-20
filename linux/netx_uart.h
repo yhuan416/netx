@@ -1,6 +1,8 @@
 #ifndef _NETX_UART_H_
 #define _NETX_UART_H_
 
+#ifdef __linux__
+
 #include "netx.h"
 
 typedef enum {
@@ -13,4 +15,5 @@ int32_t NetxUartCreate(netx *self, const char *desc);
 
 int32_t NetxUartDestory(netx *self);
 
+#endif // __linux__
 #endif
